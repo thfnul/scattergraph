@@ -1594,7 +1594,7 @@
                 const serialNumber = document.createElement('div');
                 serialNumber.className = 'serial-number';
                 const filename = file.split('/').pop(); // Get just the filename
-                serialNumber.textContent = extractSerialNumber(filename);
+                serialNumber.textContent = getSerialNumber(filename);
                 
                 container.appendChild(img);
                 container.appendChild(serialNumber);
@@ -1965,16 +1965,15 @@
     }
 
     // Function to extract serial number from filename
-    function extractSerialNumber(filename) {
-      // Remove file extension and get last 8 characters
-      const withoutExtension = filename.replace(/\.png$/, '');
-      return withoutExtension.slice(-8);
+    function getSerialNumber(filename) {
+      const withoutExtension = filename.split('.').slice(0, -1).join('.');
+      return withoutExtension;
     }
 
     // Function to update serial tracking
     function updateSerialTracking(imgSrc, isAdding = true) {
       const filename = imgSrc.split('/').pop();
-      const serial = extractSerialNumber(filename);
+      const serial = getSerialNumber(filename);
       
       if (isAdding) {
         if (DEBUG.trackInstanceCount) {
@@ -2051,6 +2050,26 @@
         }, 800);
       }, remainingTime);
     }
+
+    // Add keyboard event listener for view toggling
+    document.addEventListener('keydown', function(event) {
+        if (event.key === '`') {
+            const startButton = document.getElementById('startButton');
+            const toggleSelectButton = document.getElementById('toggleSelectButton');
+            
+            // In selector view
+            if (startButton && startButton.style.display !== 'none') {
+                // Only toggle if we have selected images
+                if (!startButton.disabled) {
+                    toggleViews();
+                }
+            }
+            // In canvas view
+            else if (toggleSelectButton && toggleSelectButton.style.display !== 'none') {
+                toggleViews();
+            }
+        }
+    });
   </script>
 </body>
 </html>

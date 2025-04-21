@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scattergraph Admin</title>
+    <link href="fonts/fonts.css" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/ocr-a-std" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #fff;
+            font-family: 'OCR A Std', monospace;
+        }
+
+        .header {
+            background: #000;
+            padding: 20px;
+            border-bottom: 2px solid;
+            border-image: linear-gradient(90deg, 
+                transparent 0%,
+                #ef3b39 15%,
+                #12e2dc 50%,
+                #ece83e 85%,
+                transparent 100%
+            ) 1;
+        }
+
+        .header h1 {
+            font-family: 'BW Stretch', sans-serif;
+            color: #fff;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .content {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .entry {
+            background: rgba(18, 226, 220, 0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .entry:hover {
+            background: rgba(18, 226, 220, 0.2);
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(18, 226, 220, 0.3);
+        }
+
+        .sequence {
+            color: #ece83e;
+            font-size: 1.2em;
+        }
+
+        .timestamp {
+            color: #ef3b39;
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .detail-label {
+            color: #12e2dc;
+            font-size: 0.8em;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #fff;
+            word-break: break-word;
+        }
+
+        .serials {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+
+        .serials-header {
+            color: #12e2dc;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .serial-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .serial-item {
+            background: rgba(18, 226, 220, 0.1);
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .serial-count {
+            color: #ece83e;
+            margin-left: 5px;
+        }
+
+        .refresh-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #12e2dc;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'OCR A Std', monospace;
+            transition: background-color 0.3s ease;
+        }
+
+        .refresh-button:hover {
+            background: #10c5c0;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        /* Loading animation */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #12e2dc;
+            font-size: 1.2em;
+        }
+
+        .loading.visible {
+            display: block;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .loading::after {
+            content: '...';
+            animation: blink 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>SCATTERGRAPH 3.0 ADMIN</h1>
+    </div>
+
+    <div class="content" id="entriesContainer">
+        <!-- Entries will be populated here -->
+    </div>
+
+    <button class="refresh-button" onclick="loadEntries()">REFRESH DATA</button>
+    <div class="loading" id="loading">Loading data</div>
+
+    <script>
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+        }
+
+        function createEntryElement(entry) {
+            return `
+                <div class="entry">
+                    <div class="entry-header">
+                        <div class="sequence">#${String(entry.id).padStart(3, '0')}</div>
+                        <div class="timestamp">${formatDate(entry.created_at)}</div>
+                    </div>
+                    <div class="details">
+                        <div class="detail-item">
+                            <div class="detail-label">BROWSER</div>
+                            <div class="detail-value">${entry.browser}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">PLATFORM</div>
+                            <div class="detail-value">${entry.platform}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">TOTAL PLACEMENTS</div>
+                            <div class="detail-value">${entry.total_placements}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">UNIQUE SERIALS</div>
+                            <div class="detail-value">${entry.unique_serials}</div>
+                        </div>
+                    </div>
+                    <div class="serials">
+                        <div class="serials-header">SERIALS USED:</div>
+                        <div class="serial-list">
+                            ${entry.serial_usage.map(serial => `
+                                <div class="serial-item">
+                                    ${serial.serial_number}
+                                    <span class="serial-count">×${serial.usage_count}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadEntries() {
+            const loading = document.getElementById('loading');
+            const container = document.getElementById('entriesContainer');
+            
+            loading.classList.add('visible');
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/entries');
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.message);
+                }
+                
+                if (!Array.isArray(data)) {
+                    throw new Error('Invalid data format received from server');
+                }
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<div class="no-data">No entries found in database</div>';
+                    return;
+                }
+                
+                container.innerHTML = data.map(entry => createEntryElement(entry)).join('');
+            } catch (error) {
+                console.error('Error loading entries:', error);
+                container.innerHTML = `<div class="no-data">Error loading data: ${error.message}<br><br>Please make sure the server is running.</div>`;
+            } finally {
+                loading.classList.remove('visible');
+            }
+        }
+
+        // Load entries when page loads
+        document.addEventListener('DOMContentLoaded', loadEntries);
+    </script>
+</body>
+</html>
